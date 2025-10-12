@@ -261,6 +261,49 @@ export class EmpresaFormApp implements OnInit {
     return true;
   }
 
+  formatarCnpj(): void {
+    if (!this.empresa.cnpj) return;
+    
+    // Remove tudo que não é número
+    let cnpj = this.empresa.cnpj.replace(/\D/g, '');
+    
+    // Adiciona a formatação: 00.000.000/0000-00
+    if (cnpj.length > 2) {
+      cnpj = cnpj.substring(0, 2) + '.' + cnpj.substring(2);
+    }
+    if (cnpj.length > 6) {
+      cnpj = cnpj.substring(0, 6) + '.' + cnpj.substring(6);
+    }
+    if (cnpj.length > 10) {
+      cnpj = cnpj.substring(0, 10) + '/' + cnpj.substring(10);
+    }
+    if (cnpj.length > 15) {
+      cnpj = cnpj.substring(0, 15) + '-' + cnpj.substring(15, 17);
+    }
+    
+    this.empresa.cnpj = cnpj;
+  }
+
+  formatarCelular(): void {
+    if (!this.empresa.celular) return;
+    
+    // Remove tudo que não é número
+    let celular = this.empresa.celular.replace(/\D/g, '');
+    
+    // Adiciona a formatação: (00) 00000-0000
+    if (celular.length > 0) {
+      celular = '(' + celular;
+    }
+    if (celular.length > 3) {
+      celular = celular.substring(0, 3) + ') ' + celular.substring(3);
+    }
+    if (celular.length > 10) {
+      celular = celular.substring(0, 10) + '-' + celular.substring(10, 14);
+    }
+    
+    this.empresa.celular = celular;
+  }
+
   voltar(): void {
     this.router.navigate(['/empresas']);
   }

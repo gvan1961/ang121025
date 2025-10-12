@@ -1,14 +1,17 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { EmpresaService } from '../../services/empresa.service';
 import { Empresa } from '../../models/empresa.model';
+import { CnpjPipe, CelularPipe } from '../../pipes/format.pipe';
 
 @Component({
   selector: 'app-empresa-lista',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CnpjPipe, CelularPipe],
   template: `
     <div class="container">
       <div class="header">
@@ -45,9 +48,9 @@ import { Empresa } from '../../models/empresa.model';
           <tbody>
             <tr *ngFor="let empresa of empresasFiltradas">
               <td>{{ empresa.nomeEmpresa }}</td>
-              <td>{{ empresa.cnpj }}</td>
+              <td>{{ empresa.cnpj | cnpj }}</td>
               <td>{{ empresa.contato }}</td>
-              <td>{{ empresa.celular }}</td>
+              <td>{{ empresa.celular | celular }}</td>
               <td>
                 <button class="btn-edit" (click)="editar(empresa.id!)">Editar</button>
                 <button class="btn-delete" (click)="excluir(empresa.id!)">Excluir</button>
