@@ -28,14 +28,18 @@ import { Empresa } from '../../models/empresa.model';
 
             <div class="form-group">
               <label>CPF *</label>
-              <input type="text" [(ngModel)]="cliente.cpf" name="cpf" required />
+              <input type="text" [(ngModel)]="cliente.cpf" name="cpf" required 
+                     (input)="formatarCpf()" maxlength="14" 
+                     placeholder="000.000.000-00" />
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group">
               <label>Celular *</label>
-              <input type="text" [(ngModel)]="cliente.celular" name="celular" required />
+              <input type="text" [(ngModel)]="cliente.celular" name="celular" required 
+                     (input)="formatarCelular()" maxlength="15" 
+                     placeholder="(00) 00000-0000" />
             </div>
 
             <div class="form-group">
@@ -52,7 +56,9 @@ import { Empresa } from '../../models/empresa.model';
 
             <div class="form-group">
               <label>CEP</label>
-              <input type="text" [(ngModel)]="cliente.cep" name="cep" />
+              <input type="text" [(ngModel)]="cliente.cep" name="cep" 
+                     (input)="formatarCep()" maxlength="9" 
+                     placeholder="00000-000" />
             </div>
           </div>
 
@@ -342,6 +348,60 @@ export class ClienteFormApp implements OnInit {
       return false;
     }
     return true;
+  }
+
+  formatarCep(): void {
+    if (!this.cliente.cep) return;
+    
+    // Remove tudo que não é número
+    let cep = this.cliente.cep.replace(/\D/g, '');
+    
+    // Adiciona o traço após 5 dígitos
+    if (cep.length > 5) {
+      cep = cep.substring(0, 5) + '-' + cep.substring(5, 8);
+    }
+    
+    this.cliente.cep = cep;
+  }
+
+  formatarCpf(): void {
+    if (!this.cliente.cpf) return;
+    
+    // Remove tudo que não é número
+    let cpf = this.cliente.cpf.replace(/\D/g, '');
+    
+    // Adiciona a formatação: 000.000.000-00
+    if (cpf.length > 3) {
+      cpf = cpf.substring(0, 3) + '.' + cpf.substring(3);
+    }
+    if (cpf.length > 7) {
+      cpf = cpf.substring(0, 7) + '.' + cpf.substring(7);
+    }
+    if (cpf.length > 11) {
+      cpf = cpf.substring(0, 11) + '-' + cpf.substring(11, 13);
+    }
+    
+    this.cliente.cpf = cpf;
+  }
+
+  formatarCelular(): void {
+    if (!this.cliente.celular) return;
+    
+    // Remove tudo que não é número
+    let celular = this.cliente.celular.replace(/\D/g, '');
+    
+    // Adiciona a formatação: (00) 00000-0000
+    if (celular.length > 0) {
+      celular = '(' + celular;
+    }
+    if (celular.length > 3) {
+      celular = celular.substring(0, 3) + ') ' + celular.substring(3);
+    }
+    if (celular.length > 10) {
+      celular = celular.substring(0, 10) + '-' + celular.substring(10, 14);
+    }
+    
+    this.cliente.celular = celular;
   }
 
   voltar(): void {

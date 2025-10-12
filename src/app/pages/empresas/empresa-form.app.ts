@@ -25,7 +25,9 @@ import { EmpresaRequest } from '../../models/empresa.model';
 
           <div class="form-group">
             <label>CNPJ *</label>
-            <input type="text" [(ngModel)]="empresa.cnpj" name="cnpj" required />
+            <input type="text" [(ngModel)]="empresa.cnpj" name="cnpj" required 
+                   (input)="formatarCnpj()" maxlength="18" 
+                   placeholder="00.000.000/0000-00" />
           </div>
 
           <div class="form-group">
@@ -35,7 +37,9 @@ import { EmpresaRequest } from '../../models/empresa.model';
 
           <div class="form-group">
             <label>Celular *</label>
-            <input type="text" [(ngModel)]="empresa.celular" name="celular" required />
+            <input type="text" [(ngModel)]="empresa.celular" name="celular" required 
+                   (input)="formatarCelular()" maxlength="15" 
+                   placeholder="(00) 00000-0000" />
           </div>
 
           <div *ngIf="errorMessage" class="error-message">
@@ -230,12 +234,20 @@ export class EmpresaFormApp implements OnInit {
 
     request.subscribe({
       next: () => {
+        console.log('✅ Empresa salva com sucesso!');
         this.router.navigate(['/empresas']);
       },
       error: (err) => {
         this.loading = false;
-        console.error('❌ Erro ao salvar:', err);
-        this.errorMessage = err.error?.message || 'Erro ao salvar empresa';
+        console.error('❌ ERRO COMPLETO:', err);
+        console.error('   Status:', err.status);
+        console.error('   Mensagem:', err.error);
+        
+        if (err.status === 401 || err.status === 403) {
+          this.errorMessage = 'Acesso não autorizado. Verifique suas permissões.';
+        } else {
+          this.errorMessage = err.error?.message || 'Erro ao salvar empresa';
+        }
       }
     });
   }
