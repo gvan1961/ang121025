@@ -43,4 +43,8 @@ export class ProdutoService {
     console.log('🗑️ Deletando produto:', id);
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
+
+  listarDisponiveis(): Observable<Produto[]> {
+  return this.http.get<Produto[]>(`${this.apiUrl}/disponiveis`);
+}
 }

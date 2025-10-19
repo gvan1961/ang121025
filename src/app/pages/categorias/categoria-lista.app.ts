@@ -42,7 +42,7 @@ import { Categoria } from '../../models/categoria.model';
           </thead>
           <tbody>
             <tr *ngFor="let categoria of categoriasFiltradas">
-              <td>{{ categoria.nomeCategoria }}</td>
+              <td>{{ categoria.nome }}</td>
               <td>{{ categoria.descricao || '-' }}</td>
               <td>
                 <button class="btn-edit" (click)="editar(categoria.id!)">Editar</button>
@@ -194,7 +194,7 @@ export class CategoriaListaApp implements OnInit {
   filtrar(): void {
     const termo = this.filtro.toLowerCase();
     this.categoriasFiltradas = this.categorias.filter(c =>
-      c.nomeCategoria.toLowerCase().includes(termo)
+      c.nome.toLowerCase().includes(termo)
     );
   }
 

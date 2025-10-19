@@ -1,10 +1,11 @@
 export interface Categoria {
   id?: number;
-  nomeCategoria: string;
+  nome: string;
   descricao?: string;
+  totalProdutos?: number;
 }
 
 export interface CategoriaRequest {
-  nomeCategoria: string;
+  nome: string;
   descricao?: string;
 }

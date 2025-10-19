@@ -4,17 +4,19 @@ export interface Apartamento {
   id?: number;
   numeroApartamento: string;
   tipoApartamentoId: number;
-  tipoApartamento?: any;
+  tipoApartamentoNome?: string; // ✅ ADICIONAR
+  tipoApartamentoDescricao?: string; // ✅ ADICIONAR
+  tipoApartamento?: any; // Manter para compatibilidade
   capacidade: number;
-  camasDoApartamento: number;
-  tv?: boolean;
-  status?: StatusApartamento;
+  camasDoApartamento: string;
+  tv?: string;
+  status?: StatusApartamento;  
 }
 
 export interface ApartamentoRequest {
   numeroApartamento: string;
   tipoApartamentoId: number;
   capacidade: number;
-  camasDoApartamento: number;
-  tv?: boolean;
+  camasDoApartamento: string;
+  tv?: string;
 }

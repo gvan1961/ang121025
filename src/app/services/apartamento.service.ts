@@ -1,15 +1,19 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Apartamento, ApartamentoRequest } from '../models/apartamento.model';
-import { StatusApartamento } from '../models/enums';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ApartamentoService {
-  private http = inject(HttpClient);
   private apiUrl = 'http://localhost:8080/api/apartamentos';
+
+  constructor(private http: HttpClient) {}
+
+  // =======================================
+  // ✅ MÉTODOS CRUD BÁSICOS
+  // =======================================
 
   getAll(): Observable<Apartamento[]> {
     return this.http.get<Apartamento[]>(this.apiUrl);
@@ -19,29 +23,75 @@ export class ApartamentoService {
     return this.http.get<Apartamento>(`${this.apiUrl}/${id}`);
   }
 
+  create(apartamento: ApartamentoRequest): Observable<Apartamento> {
+    return this.http.post<Apartamento>(this.apiUrl, apartamento);
+  }
+
+  update(id: number, apartamento: ApartamentoRequest): Observable<Apartamento> {
+    return this.http.put<Apartamento>(`${this.apiUrl}/${id}`, apartamento);
+  }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  // =======================================
+  // ✅ MÉTODOS ESPECÍFICOS
+  // =======================================
+
+  listar(): Observable<Apartamento[]> {
+    return this.http.get<Apartamento[]>(this.apiUrl);
+  }
+
   getDisponiveis(): Observable<Apartamento[]> {
     return this.http.get<Apartamento[]>(`${this.apiUrl}/disponiveis`);
   }
 
-  create(apartamento: ApartamentoRequest): Observable<Apartamento> {
-    console.log('📤 Criando apartamento:', JSON.stringify(apartamento, null, 2));
-    const headers = { 'Content-Type': 'application/json' };
-    return this.http.post<Apartamento>(this.apiUrl, apartamento, { headers });
+  buscarPorNumero(numero: string): Observable<Apartamento> {
+    return this.http.get<Apartamento>(`${this.apiUrl}/numero/${numero}`);
   }
 
-  update(id: number, apartamento: ApartamentoRequest): Observable<Apartamento> {
-    console.log('📤 Atualizando apartamento:', id, JSON.stringify(apartamento, null, 2));
-    const headers = { 'Content-Type': 'application/json' };
-    return this.http.put<Apartamento>(`${this.apiUrl}/${id}`, apartamento, { headers });
+  buscarPorStatus(status: string): Observable<Apartamento[]> {
+    return this.http.get<Apartamento[]>(`${this.apiUrl}/status/${status}`);
   }
 
-  atualizarStatus(id: number, status: StatusApartamento): Observable<Apartamento> {
-    console.log('🔄 Atualizando status:', id, status);
-    return this.http.patch<Apartamento>(`${this.apiUrl}/${id}/status?status=${status}`, {});
+  // =======================================
+  // ✅ GESTÃO DE STATUS
+  // =======================================
+
+  liberarLimpeza(id: number): Observable<Apartamento> {
+    return this.http.patch<Apartamento>(`${this.apiUrl}/${id}/liberar-limpeza`, null);
   }
 
-  delete(id: number): Observable<void> {
-    console.log('🗑️ Deletando apartamento:', id);
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  colocarEmManutencao(id: number, motivo: string): Observable<Apartamento> {
+    return this.http.patch<Apartamento>(
+      `${this.apiUrl}/${id}/manutencao`,
+      null,
+      { params: { motivo } }
+    );
+  }
+
+  liberarManutencao(id: number): Observable<Apartamento> {
+    return this.http.patch<Apartamento>(`${this.apiUrl}/${id}/liberar-manutencao`, null);
+  }
+
+  bloquear(id: number, motivo: string): Observable<Apartamento> {
+    return this.http.patch<Apartamento>(
+      `${this.apiUrl}/${id}/bloquear`,
+      null,
+      { params: { motivo } }
+    );
+  }
+
+  desbloquear(id: number): Observable<Apartamento> {
+    return this.http.patch<Apartamento>(`${this.apiUrl}/${id}/desbloquear`, null);
+  }
+
+  atualizarStatus(id: number, status: string): Observable<Apartamento> {
+    return this.http.patch<Apartamento>(
+      `${this.apiUrl}/${id}/status`,
+      null,
+      { params: { status } }
+    );
   }
 }

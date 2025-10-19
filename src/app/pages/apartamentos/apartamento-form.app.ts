@@ -23,37 +23,57 @@ import { TipoApartamento } from '../../models/tipo-apartamento.model';
           <div class="form-row">
             <div class="form-group">
               <label>Número do Apartamento *</label>
-              <input type="text" [(ngModel)]="apartamento.numeroApartamento" name="numeroApartamento" required />
+              <input type="text" [(ngModel)]="apartamento.numeroApartamento" 
+                     name="numeroApartamento" required 
+                     placeholder="Ex: 101, 202, 305" />
             </div>
 
             <div class="form-group">
               <label>Tipo de Apartamento *</label>
-              <select [(ngModel)]="apartamento.tipoApartamentoId" name="tipoApartamentoId" required>
-                <option [value]="undefined">Selecione o tipo</option>
-                <option *ngFor="let tipo of tiposApartamento" [value]="tipo.id">
-                  {{ tipo.tipo }}
+              <select [(ngModel)]="apartamento.tipoApartamentoId" 
+                      name="tipoApartamentoId" required>
+                <option [ngValue]="0">Selecione o tipo</option>
+                <option *ngFor="let tipo of tiposApartamento" [ngValue]="tipo.id">
+                  {{ tipo.tipo }} - {{ tipo.descricao }}
                 </option>
               </select>
             </div>
           </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label>Capacidade *</label>
-              <input type="number" [(ngModel)]="apartamento.capacidade" name="capacidade" required min="1" />
-            </div>
-
-            <div class="form-group">
-              <label>Número de Camas *</label>
-              <input type="number" [(ngModel)]="apartamento.camasDoApartamento" name="camasDoApartamento" required min="1" />
-            </div>
+          <div class="form-group">
+            <label>Capacidade de Hóspedes *</label>
+            <input type="number" [(ngModel)]="apartamento.capacidade" 
+                   name="capacidade" required min="1" 
+                   placeholder="Ex: 2, 3, 4" />
+            <small class="field-help">Quantidade máxima de pessoas no apartamento</small>
           </div>
 
-          <div class="form-group checkbox-group">
-            <label>
-              <input type="checkbox" [(ngModel)]="apartamento.tv" name="tv" />
-              Possui TV
-            </label>
+          <div class="form-group">
+            <label>Camas do Apartamento *</label>
+            <textarea [(ngModel)]="apartamento.camasDoApartamento" 
+                      name="camasDoApartamento" required rows="2"
+                      placeholder="Ex: 1 cama de casal + 1 de solteiro, 2 camas de solteiro, 1 cama king size"></textarea>
+            <small class="field-help">Descreva as camas (quantidade e tipo)</small>
+          </div>
+
+          <div class="form-group">
+            <label>TV</label>
+            <input type="text" [(ngModel)]="apartamento.tv" 
+                   name="tv" 
+                   placeholder="Ex: Smart TV LG 50 polegadas, TV Samsung 42 pol" />
+            <small class="field-help">Especificações da TV (marca, tamanho, se é smart, etc.) - Opcional</small>
+          </div>
+
+          <div class="info-box">
+            <strong>💡 Exemplos de descrição de camas:</strong>
+            <ul>
+              <li>1 cama de casal</li>
+              <li>2 camas de solteiro</li>
+              <li>1 cama de casal + 1 de solteiro</li>
+              <li>3 camas de solteiro</li>
+              <li>1 cama king size</li>
+              <li>1 cama de casal + 2 beliches</li>
+            </ul>
           </div>
 
           <div *ngIf="errorMessage" class="error-message">
@@ -120,18 +140,6 @@ import { TipoApartamento } from '../../models/tipo-apartamento.model';
       margin-bottom: 20px;
     }
 
-    .checkbox-group label {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      cursor: pointer;
-    }
-
-    .checkbox-group input[type="checkbox"] {
-      width: auto;
-      cursor: pointer;
-    }
-
     label {
       display: block;
       margin-bottom: 5px;
@@ -139,18 +147,56 @@ import { TipoApartamento } from '../../models/tipo-apartamento.model';
       font-weight: 500;
     }
 
-    input, select {
+    input, select, textarea {
       width: 100%;
       padding: 10px;
       border: 1px solid #ddd;
       border-radius: 5px;
       font-size: 14px;
       box-sizing: border-box;
+      font-family: inherit;
     }
 
-    input:focus, select:focus {
+    textarea {
+      resize: vertical;
+    }
+
+    input:focus, select:focus, textarea:focus {
       outline: none;
       border-color: #667eea;
+    }
+
+    .field-help {
+      display: block;
+      font-size: 12px;
+      color: #666;
+      margin-top: 4px;
+      font-style: italic;
+    }
+
+    .info-box {
+      background: #e3f2fd;
+      border-left: 4px solid #2196f3;
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    .info-box strong {
+      color: #1976d2;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .info-box ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .info-box li {
+      margin: 4px 0;
+      color: #555;
     }
 
     .error-message {
@@ -216,8 +262,8 @@ export class ApartamentoFormApp implements OnInit {
     numeroApartamento: '',
     tipoApartamentoId: 0,
     capacidade: 1,
-    camasDoApartamento: 1,
-    tv: false
+    camasDoApartamento: '',
+    tv: ''
   };
 
   tiposApartamento: TipoApartamento[] = [];
@@ -227,48 +273,65 @@ export class ApartamentoFormApp implements OnInit {
   apartamentoId?: number;
 
   ngOnInit(): void {
+    console.log('🔵 Inicializando ApartamentoForm');
     this.carregarTiposApartamento();
     
     this.route.params.subscribe(params => {
       if (params['id']) {
         this.isEdit = true;
         this.apartamentoId = +params['id'];
+        console.log('✏️ Modo edição - ID:', this.apartamentoId);
         this.carregarApartamento(this.apartamentoId);
+      } else {
+        console.log('➕ Modo criação');
       }
     });
   }
 
   carregarTiposApartamento(): void {
+    console.log('📋 Carregando tipos de apartamento...');
     this.tipoApartamentoService.getAll().subscribe({
       next: (data) => {
         this.tiposApartamento = data;
+        console.log('✅ Tipos carregados:', data);
       },
       error: (err) => {
-        console.error('Erro ao carregar tipos de apartamento', err);
+        console.error('❌ Erro ao carregar tipos:', err);
       }
     });
   }
 
   carregarApartamento(id: number): void {
+    console.log('📦 Carregando apartamento ID:', id);
     this.apartamentoService.getById(id).subscribe({
       next: (data) => {
+        console.log('📥 Dados recebidos do backend:', data);
+        
+        const tipoId = data.tipoApartamento?.id || data.tipoApartamentoId;
+        
         this.apartamento = {
           numeroApartamento: data.numeroApartamento,
-          tipoApartamentoId: data.tipoApartamentoId,
-          capacidade: data.capacidade,
-          camasDoApartamento: data.camasDoApartamento,
-          tv: data.tv || false
+          tipoApartamentoId: Number(tipoId),
+          capacidade: Number(data.capacidade),
+          camasDoApartamento: data.camasDoApartamento || '',
+          tv: data.tv || ''
         };
+        
+        console.log('✅ Apartamento carregado no formulário:', this.apartamento);
       },
       error: (err) => {
-        console.error('Erro ao carregar apartamento', err);
+        console.error('❌ Erro ao carregar apartamento:', err);
         this.errorMessage = 'Erro ao carregar apartamento';
       }
     });
   }
 
   salvar(): void {
+    console.log('💾 Iniciando salvamento...');
+    console.log('📝 Estado atual do formulário:', this.apartamento);
+    
     if (!this.validarFormulario()) {
+      console.log('⚠️ Validação falhou');
       return;
     }
 
@@ -277,33 +340,56 @@ export class ApartamentoFormApp implements OnInit {
 
     const apartamentoRequest: ApartamentoRequest = {
       numeroApartamento: this.apartamento.numeroApartamento,
-      tipoApartamentoId: this.apartamento.tipoApartamentoId,
-      capacidade: this.apartamento.capacidade,
+      tipoApartamentoId: Number(this.apartamento.tipoApartamentoId),
+      capacidade: Number(this.apartamento.capacidade),
       camasDoApartamento: this.apartamento.camasDoApartamento,
-      tv: this.apartamento.tv
+      tv: this.apartamento.tv || undefined
     };
+
+    console.log('📤 Request montado:', apartamentoRequest);
 
     const request = this.isEdit
       ? this.apartamentoService.update(this.apartamentoId!, apartamentoRequest)
       : this.apartamentoService.create(apartamentoRequest);
 
     request.subscribe({
-      next: () => {
+      next: (response) => {
+        console.log('✅ Salvo com sucesso:', response);
         this.router.navigate(['/apartamentos']);
       },
       error: (err) => {
+        console.error('❌ Erro ao salvar:', err);
+        console.error('❌ Detalhes:', err.error);
         this.loading = false;
-        this.errorMessage = err.error?.message || 'Erro ao salvar apartamento';
+        this.errorMessage = err.error?.message || err.error || 'Erro ao salvar apartamento';
       }
     });
   }
 
   validarFormulario(): boolean {
-    if (!this.apartamento.numeroApartamento || !this.apartamento.tipoApartamentoId || 
-        this.apartamento.capacidade < 1 || this.apartamento.camasDoApartamento < 1) {
-      this.errorMessage = 'Preencha todos os campos obrigatórios';
+    console.log('🔍 Validando formulário...');
+    
+    if (!this.apartamento.numeroApartamento) {
+      this.errorMessage = 'Número do apartamento é obrigatório';
       return false;
     }
+    
+    if (!this.apartamento.tipoApartamentoId || this.apartamento.tipoApartamentoId === 0) {
+      this.errorMessage = 'Selecione o tipo de apartamento';
+      return false;
+    }
+    
+    if (this.apartamento.capacidade < 1) {
+      this.errorMessage = 'Capacidade deve ser no mínimo 1 pessoa';
+      return false;
+    }
+    
+    if (!this.apartamento.camasDoApartamento || this.apartamento.camasDoApartamento.trim() === '') {
+      this.errorMessage = 'Descrição das camas é obrigatória';
+      return false;
+    }
+    
+    console.log('✅ Formulário válido');
     return true;
   }
 
@@ -311,3 +397,4 @@ export class ApartamentoFormApp implements OnInit {
     this.router.navigate(['/apartamentos']);
   }
 }
+

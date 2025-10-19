@@ -20,7 +20,7 @@ import { CategoriaRequest } from '../../models/categoria.model';
         <form (ngSubmit)="salvar()">
           <div class="form-group">
             <label>Nome da Categoria *</label>
-            <input type="text" [(ngModel)]="categoria.nomeCategoria" name="nomeCategoria" required 
+            <input type="text" [(ngModel)]="categoria.nome" name="nome" required 
                    placeholder="Ex: Bebidas, Alimentos, Higiene..." />
           </div>
 
@@ -166,7 +166,7 @@ export class CategoriaFormApp implements OnInit {
   private route = inject(ActivatedRoute);
 
   categoria: CategoriaRequest = {
-    nomeCategoria: '',
+    nome: '',
     descricao: ''
   };
 
@@ -189,7 +189,7 @@ export class CategoriaFormApp implements OnInit {
     this.categoriaService.getById(id).subscribe({
       next: (data) => {
         this.categoria = {
-          nomeCategoria: data.nomeCategoria,
+          nome: data.nome,
           descricao: data.descricao
         };
       },
@@ -209,7 +209,7 @@ export class CategoriaFormApp implements OnInit {
     this.errorMessage = '';
 
     const categoriaRequest: CategoriaRequest = {
-      nomeCategoria: this.categoria.nomeCategoria,
+      nome: this.categoria.nome,
       descricao: this.categoria.descricao || undefined
     };
 
@@ -229,7 +229,7 @@ export class CategoriaFormApp implements OnInit {
   }
 
   validarFormulario(): boolean {
-    if (!this.categoria.nomeCategoria) {
+    if (!this.categoria.nome) {
       this.errorMessage = 'Preencha o nome da categoria';
       return false;
     }

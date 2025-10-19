@@ -3,7 +3,8 @@ export enum StatusApartamento {
   OCUPADO = 'OCUPADO',
   LIMPEZA = 'LIMPEZA',
   PRE_RESERVA = 'PRE_RESERVA',
-  MANUTENCAO = 'MANUTENCAO'
+  MANUTENCAO = 'MANUTENCAO',
+  INDISPONIVEL = 'INDISPONIVEL'
 }
 
 export enum TipoApartamento {

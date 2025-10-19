@@ -1,3 +1,5 @@
+// src/app/pages/dashboard/dashboard.app.ts
+
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -27,36 +29,50 @@ import { AuthService } from '../../services/auth.service';
                 📊 Dashboard
               </a>
             </li>
+            
+            <!-- ✅ RESERVAS ADICIONADO -->
+            <li>
+              <a [class.active]="isActive('/reservas')" (click)="navigate('/reservas')">
+                🏨 Reservas
+              </a>
+            </li>
+
             <li>
               <a [class.active]="isActive('/apartamentos')" (click)="navigate('/apartamentos')">
                 🏢 Apartamentos
               </a>
             </li>
+
             <li>
               <a [class.active]="isActive('/tipos-apartamento')" (click)="navigate('/tipos-apartamento')">
                 🏷️ Tipos Apartamento
               </a>
             </li>
+            
             <li>
               <a [class.active]="isActive('/diarias')" (click)="navigate('/diarias')">
                 💰 Diárias
               </a>
             </li>
+            
             <li>
               <a [class.active]="isActive('/clientes')" (click)="navigate('/clientes')">
                 👥 Clientes
               </a>
             </li>
+            
             <li>
               <a [class.active]="isActive('/empresas')" (click)="navigate('/empresas')">
                 🏢 Empresas
               </a>
             </li>
+            
             <li>
               <a [class.active]="isActive('/produtos')" (click)="navigate('/produtos')">
                 📦 Produtos
               </a>
             </li>
+            
             <li>
               <a [class.active]="isActive('/categorias')" (click)="navigate('/categorias')">
                 🏷️ Categorias
@@ -71,6 +87,13 @@ import { AuthService } from '../../services/auth.service';
             <p>Selecione uma opção no menu lateral para começar</p>
             
             <div class="cards">
+              <!-- ✅ CARD RESERVAS ADICIONADO -->
+              <div class="card highlight" (click)="navigate('/reservas')">
+                <div class="card-icon">🏨</div>
+                <h3>Reservas</h3>
+                <p>Gerenciar reservas de hóspedes</p>
+              </div>
+
               <div class="card" (click)="navigate('/apartamentos')">
                 <div class="card-icon">🏢</div>
                 <h3>Apartamentos</h3>
@@ -81,6 +104,13 @@ import { AuthService } from '../../services/auth.service';
                 <div class="card-icon">🏷️</div>
                 <h3>Tipos Apartamento</h3>
                 <p>Gerenciar tipos de apartamentos</p>
+              </div>
+
+              <!-- ✅ CARD DIÁRIAS ADICIONADO -->
+              <div class="card" (click)="navigate('/diarias')">
+                <div class="card-icon">💰</div>
+                <h3>Diárias</h3>
+                <p>Gerenciar valores de diárias</p>
               </div>
 
               <div class="card" (click)="navigate('/clientes')">
@@ -230,6 +260,18 @@ import { AuthService } from '../../services/auth.service';
       box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     }
 
+    /* ✅ Destaque para Reservas */
+    .card.highlight {
+      border: 2px solid #667eea;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .card.highlight h3,
+    .card.highlight p {
+      color: white;
+    }
+
     .card-icon {
       font-size: 48px;
       margin-bottom: 15px;
@@ -269,4 +311,8 @@ export class DashboardApp {
   logout(): void {
     this.authService.logout();
   }
+
+  
+
+
 }

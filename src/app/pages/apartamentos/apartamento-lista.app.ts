@@ -4,19 +4,34 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ApartamentoService } from '../../services/apartamento.service';
 import { Apartamento } from '../../models/apartamento.model';
-import { StatusApartamento } from '../../models/enums';
+
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-apartamento-lista',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
+  
   template: `
     <div class="container">
       <div class="header">
         <h1>Apartamentos</h1>
         <button class="btn-primary" (click)="novo()">+ Novo Apartamento</button>
-      </div>
+      </div>     
 
+      <div class="acoes-topo">
+         <button class="btn-gestao" routerLink="/apartamentos/gestao">
+        🔧 Gestão de Status
+       </button>
+     </div>
+
+     <div class="card" routerLink="/apartamentos/gestao">
+       <div class="card-icon">🔧</div>
+         <h3>Gestão de Status</h3>
+         <p>Liberar limpeza, manutenção e bloqueios</p>
+    </div>
+
+      
       <div class="search-box">
         <input 
           type="text" 
@@ -47,19 +62,15 @@ import { StatusApartamento } from '../../models/enums';
           </thead>
           <tbody>
             <tr *ngFor="let apt of apartamentosFiltrados">
-              <td>{{ apt.numeroApartamento }}</td>
-              <td>{{ apt.tipoApartamento?.tipo || '-' }}</td>
-              <td>{{ apt.capacidade }}</td>
+              <td><strong>{{ apt.numeroApartamento }}</strong></td>
+              <td>{{ apt.tipoApartamentoNome }} - {{ apt.tipoApartamentoDescricao }}</td>
+              <td>{{ apt.capacidade }} hóspedes</td>
               <td>{{ apt.camasDoApartamento }}</td>
-              <td>{{ apt.tv ? 'Sim' : 'Não' }}</td>
-              <td>
-                <span class="status-badge" [class]="'status-' + apt.status?.toLowerCase()">
-                  {{ formatarStatus(apt.status) }}
-                </span>
-              </td>
+              <td>{{ apt.tv || 'Sem TV' }}</td>
+              <td><span [class]="'status-badge status-' + apt.status?.toLowerCase()">{{ apt.status }}</span></td>
               <td>
                 <button class="btn-edit" (click)="editar(apt.id!)">Editar</button>
-                <button class="btn-delete" (click)="excluir(apt.id!)">Excluir</button>
+                <button class="btn-status" (click)="alterarStatus(apt)">Status</button>
               </td>
             </tr>
           </tbody>
@@ -70,7 +81,7 @@ import { StatusApartamento } from '../../models/enums';
   styles: [`
     .container {
       padding: 20px;
-      max-width: 1400px;
+      max-width: 1600px;
       margin: 0 auto;
     }
 
@@ -138,6 +149,7 @@ import { StatusApartamento } from '../../models/enums';
       font-weight: 600;
       color: #333;
       border-bottom: 2px solid #dee2e6;
+      white-space: nowrap;
     }
 
     td {
@@ -150,10 +162,11 @@ import { StatusApartamento } from '../../models/enums';
     }
 
     .status-badge {
-      padding: 4px 8px;
-      border-radius: 4px;
+      padding: 4px 10px;
+      border-radius: 12px;
       font-size: 12px;
       font-weight: 500;
+      text-transform: uppercase;
     }
 
     .status-disponivel {
@@ -171,17 +184,7 @@ import { StatusApartamento } from '../../models/enums';
       color: #856404;
     }
 
-    .status-pre_reserva {
-      background: #cce5ff;
-      color: #004085;
-    }
-
-    .status-manutencao {
-      background: #e2e3e5;
-      color: #383d41;
-    }
-
-    .btn-edit, .btn-delete {
+    .btn-edit, .btn-status {
       padding: 6px 12px;
       border: none;
       border-radius: 4px;
@@ -199,14 +202,41 @@ import { StatusApartamento } from '../../models/enums';
       background: #218838;
     }
 
-    .btn-delete {
-      background: #dc3545;
+    .btn-status {
+      background: #17a2b8;
       color: white;
     }
 
-    .btn-delete:hover {
-      background: #c82333;
+    .btn-status:hover {
+      background: #138496;
     }
+
+    .acoes-topo {
+  margin-bottom: 20px;
+  display: flex;
+  gap: 10px;
+}
+
+.btn-gestao {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.btn-gestao:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
   `]
 })
 export class ApartamentoListaApp implements OnInit {
@@ -239,20 +269,10 @@ export class ApartamentoListaApp implements OnInit {
   filtrar(): void {
     const termo = this.filtro.toLowerCase();
     this.apartamentosFiltrados = this.apartamentos.filter(a =>
-      a.numeroApartamento.toLowerCase().includes(termo)
+      a.numeroApartamento.toLowerCase().includes(termo) ||
+      a.tipoApartamento.tipoApartamentoNome?.toLowerCase().includes(termo) ||
+      a.camasDoApartamento.toLowerCase().includes(termo)
     );
-  }
-
-  formatarStatus(status?: StatusApartamento): string {
-    if (!status) return '-';
-    const statusMap: any = {
-      'DISPONIVEL': 'Disponível',
-      'OCUPADO': 'Ocupado',
-      'LIMPEZA': 'Limpeza',
-      'PRE_RESERVA': 'Pré-Reserva',
-      'MANUTENCAO': 'Manutenção'
-    };
-    return statusMap[status] || status;
   }
 
   novo(): void {
@@ -263,17 +283,10 @@ export class ApartamentoListaApp implements OnInit {
     this.router.navigate(['/apartamentos/editar', id]);
   }
 
-  excluir(id: number): void {
-    if (confirm('Deseja realmente excluir este apartamento?')) {
-      this.apartamentoService.delete(id).subscribe({
-        next: () => {
-          this.carregarApartamentos();
-        },
-        error: (err) => {
-          console.error('Erro ao excluir apartamento', err);
-          alert('Erro ao excluir apartamento');
-        }
-      });
-    }
+  alterarStatus(apartamento: Apartamento): void {
+    // Implementar modal ou página para alterar status
+    console.log('Alterar status:', apartamento);
   }
+ 
+
 }

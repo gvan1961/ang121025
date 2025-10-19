@@ -1,23 +1,23 @@
 import { HttpInterceptorFn } from '@angular/common/http';
-import { inject } from '@angular/core';
-import { AuthService } from '../services/auth.service';
 
 export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
-  const authService = inject(AuthService);
-  const token = authService.getToken();
-
+  // Pega o token do localStorage
+  const token = localStorage.getItem('token');
+  
   console.log('🔐 Interceptor executado para:', req.url);
-  console.log('📝 Token:', token ? 'EXISTS' : 'NOT FOUND');
-
+  console.log('📝 Token completo:', token);
+  
+  // Se tiver token, adiciona no header Authorization
   if (token) {
     req = req.clone({
       setHeaders: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+        Authorization: `Bearer ${token}`
       }
     });
-    console.log('✅ Headers adicionados:', req.headers.keys());
+    console.log('✅ Authorization Header:', req.headers.get('Authorization'));
+  } else {
+    console.log('❌ Token não encontrado no localStorage!');
   }
-
+  
   return next(req);
 };

@@ -36,7 +36,7 @@ import { Categoria } from '../../models/categoria.model';
               <select [(ngModel)]="produto.categoriaId" name="categoriaId">
                 <option [value]="undefined">Selecione uma categoria</option>
                 <option *ngFor="let cat of categorias" [value]="cat.id">
-                  {{ cat.nomeCategoria }}
+                  {{ cat.nome }}
                 </option>
               </select>
             </div>
