@@ -1,150 +1,185 @@
 import { Component, OnInit, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+
 import { ReservaService } from '../../services/reserva.service';
-import { Reserva, StatusReserva } from '../../models/reserva.model';
+
+interface ReservaLista {
+  id: number;
+  cliente?: {
+    nome: string;
+    cpf: string;
+  };
+  apartamento?: {
+    numeroApartamento: string;
+  };
+  dataCheckin: string;
+  dataCheckout: string;
+  totalHospedagem: number;
+  status: string;
+}
 
 @Component({
   selector: 'app-reserva-lista',
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="container">
+    <div class="container-lista">
       <div class="header">
-        <h1>🏨 Reservas</h1>
-        <button class="btn-new" (click)="nova()">+ Nova Reserva</button>
+        <h1>📋 Reservas</h1>
+        <button class="btn-novo" (click)="novaReserva()">
+          ➕ Nova Reserva
+        </button>
       </div>
 
-      <div class="filters">
-        <div class="filter-buttons">
-          <button 
-            class="filter-btn" 
-            [class.active]="filtroAtual === 'todas'"
-            (click)="filtrar('todas')">
-            📋 Todas
-          </button>
-          <button 
-            class="filter-btn" 
-            [class.active]="filtroAtual === 'ativas'"
-            (click)="filtrar('ativas')">
-            🟢 Ativas
-          </button>
-          <button 
-            class="filter-btn" 
-            [class.active]="filtroAtual === 'checkin-hoje'"
-            (click)="filtrar('checkin-hoje')">
-            📅 Check-in Hoje
-          </button>
-          <button 
-            class="filter-btn" 
-            [class.active]="filtroAtual === 'checkout-hoje'"
-            (click)="filtrar('checkout-hoje')">
-            📅 Check-out Hoje
-          </button>
-        </div>
-
-        <div class="search-box">
-          <input 
-            type="text" 
-            [(ngModel)]="termoBusca" 
-            (input)="buscar()"
-            placeholder="🔍 Buscar por cliente ou apartamento..."
-          />
-        </div>
+      <!-- FILTROS -->
+      <div class="filtros">
+        <button 
+          [class.active]="filtroStatus === ''"
+          (click)="filtrarPorStatus('')">
+          Todas
+        </button>
+        <button 
+          [class.active]="filtroStatus === 'ATIVA'"
+          (click)="filtrarPorStatus('ATIVA')">
+          Ativas
+        </button>
+        <button 
+          [class.active]="filtroStatus === 'FINALIZADA'"
+          (click)="filtrarPorStatus('FINALIZADA')">
+          Finalizadas
+        </button>
+        <button 
+          [class.active]="filtroStatus === 'CANCELADA'"
+          (click)="filtrarPorStatus('CANCELADA')">
+          Canceladas
+        </button>
       </div>
 
-      <div class="table-container">
+      <!-- LOADING -->
+      <div *ngIf="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Carregando reservas...</p>
+      </div>
+
+      <!-- TABELA -->
+      <div *ngIf="!loading" class="tabela-container">
         <table>
           <thead>
             <tr>
-              <th>ID</th>
+              <th>#ID</th>
               <th>Cliente</th>
               <th>Apartamento</th>
               <th>Check-in</th>
               <th>Check-out</th>
-              <th>Hóspedes</th>
               <th>Total</th>
               <th>Status</th>
               <th>Ações</th>
             </tr>
           </thead>
           <tbody>
+            <tr *ngIf="reservasFiltradas.length === 0">
+              <td colspan="8" class="sem-dados">
+                Nenhuma reserva encontrada
+              </td>
+            </tr>
             <tr *ngFor="let reserva of reservasFiltradas">
-              <td>#{{ reserva.id }}</td>
+              <td>{{ reserva.id }}</td>
               <td>{{ reserva.cliente?.nome || 'N/A' }}</td>
               <td>
-                <span class="badge-apt">{{ reserva.apartamento?.numeroApartamento || 'N/A' }}</span>
+                <span class="numero-apt">{{ reserva.apartamento?.numeroApartamento || 'N/A' }}</span>
               </td>
               <td>{{ formatarData(reserva.dataCheckin) }}</td>
               <td>{{ formatarData(reserva.dataCheckout) }}</td>
-              <td class="hospedes">{{ reserva.quantidadeHospede }}</td>
-              <td class="valor">R$ {{ reserva.totalApagar || 0 | number:'1.2-2' }}</td>
+              <td>R$ {{ formatarMoeda(reserva.totalHospedagem) }}</td>
               <td>
-                <span class="badge-status" [class]="'status-' + reserva.status?.toLowerCase()">
+                <span [class]="'badge-status status-' + reserva.status.toLowerCase()">
                   {{ reserva.status }}
                 </span>
               </td>
-              <td class="actions">
-                <button class="btn-view" (click)="visualizar(reserva.id!)" title="Ver Detalhes">
+              <td class="acoes">
+                <button 
+                  class="btn-visualizar" 
+                  (click)="verDetalhes(reserva.id)"
+                  title="Ver detalhes">
                   👁️
                 </button>
+                
                 <button 
-                  class="btn-finish" 
-                  (click)="confirmarFinalizacao(reserva)" 
                   *ngIf="reserva.status === 'ATIVA'"
-                  title="Finalizar">
+                  class="btn-finalizar" 
+                  (click)="confirmarFinalizacao(reserva)"
+                  title="Finalizar reserva">
                   ✅
                 </button>
+                
                 <button 
-                  class="btn-cancel" 
-                  (click)="confirmarCancelamento(reserva)" 
                   *ngIf="reserva.status === 'ATIVA'"
-                  title="Cancelar">
+                  class="btn-cancelar" 
+                  (click)="confirmarCancelamento(reserva)"
+                  title="Cancelar reserva">
                   ❌
                 </button>
-              </td>
-            </tr>
-            <tr *ngIf="reservasFiltradas.length === 0">
-              <td colspan="9" class="empty">
-                Nenhuma reserva encontrada
               </td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <!-- Modal Finalizar -->
-      <div class="modal" *ngIf="showFinalizarModal" (click)="cancelarFinalizacao()">
+      <!-- MODAL FINALIZAR -->
+      <div class="modal-overlay" *ngIf="modalFinalizar" (click)="fecharModalFinalizar()">
         <div class="modal-content" (click)="$event.stopPropagation()">
-          <h3>✅ Finalizar Reserva</h3>
-          <p>Deseja finalizar esta reserva?</p>
-          <p class="info" *ngIf="reservaParaFinalizar">
-            <strong>Cliente:</strong> {{ reservaParaFinalizar.cliente?.nome }}<br>
-            <strong>Apartamento:</strong> {{ reservaParaFinalizar.apartamento?.numeroApartamento }}<br>
-            <strong>Total a pagar:</strong> R$ {{ reservaParaFinalizar.totalApagar | number:'1.2-2' }}
-          </p>
-          <div class="modal-actions">
-            <button class="btn-modal-cancel" (click)="cancelarFinalizacao()">Cancelar</button>
-            <button class="btn-modal-confirm" (click)="finalizar()">Finalizar</button>
+          <h2>✅ Finalizar Reserva</h2>
+          <div class="modal-info">
+            <p><strong>Reserva:</strong> #{{ reservaParaFinalizar?.id }}</p>
+            <p><strong>Cliente:</strong> {{ reservaParaFinalizar?.cliente?.nome }}</p>
+            <p><strong>Apartamento:</strong> {{ reservaParaFinalizar?.apartamento?.numeroApartamento }}</p>
+          </div>
+          
+          <div class="aviso" *ngIf="temSaldoDevedor()">
+            ⚠️ ATENÇÃO: Existe saldo devedor!
+          </div>
+          
+          <div class="modal-footer">
+            <button class="btn-cancelar-modal" (click)="fecharModalFinalizar()">
+              Cancelar
+            </button>
+            <button 
+              class="btn-confirmar" 
+              (click)="finalizarReserva()">
+              Confirmar Finalização
+            </button>
           </div>
         </div>
       </div>
 
-      <!-- Modal Cancelar -->
-      <div class="modal" *ngIf="showCancelarModal" (click)="cancelarCancelamento()">
+      <!-- MODAL CANCELAR -->
+      <div class="modal-overlay" *ngIf="modalCancelar" (click)="fecharModalCancelar()">
         <div class="modal-content" (click)="$event.stopPropagation()">
-          <h3>❌ Cancelar Reserva</h3>
-          <p>Informe o motivo do cancelamento:</p>
-          <textarea 
-            [(ngModel)]="motivoCancelamento" 
-            rows="3" 
-            placeholder="Ex: Cliente desistiu, problema no apartamento..."
-            class="modal-input"></textarea>
-          <div class="modal-actions">
-            <button class="btn-modal-cancel" (click)="cancelarCancelamento()">Voltar</button>
-            <button class="btn-modal-confirm" (click)="cancelar()" [disabled]="!motivoCancelamento">
-              Cancelar Reserva
+          <h2>❌ Cancelar Reserva</h2>
+          <div class="modal-info">
+            <p><strong>Reserva:</strong> #{{ reservaParaCancelar?.id }}</p>
+            <p><strong>Cliente:</strong> {{ reservaParaCancelar?.cliente?.nome }}</p>
+            <p><strong>Apartamento:</strong> {{ reservaParaCancelar?.apartamento?.numeroApartamento }}</p>
+          </div>
+          
+          <div class="campo">
+            <label>Motivo do Cancelamento *</label>
+            <textarea 
+              [(ngModel)]="motivoCancelamento"
+              rows="4"
+              placeholder="Informe o motivo do cancelamento...">
+            </textarea>
+          </div>
+          
+          <div class="modal-footer">
+            <button class="btn-cancelar-modal" (click)="fecharModalCancelar()">
+              Voltar
+            </button>
+            <button class="btn-confirmar" (click)="cancelarReserva()">
+              Confirmar Cancelamento
             </button>
           </div>
         </div>
@@ -152,7 +187,7 @@ import { Reserva, StatusReserva } from '../../models/reserva.model';
     </div>
   `,
   styles: [`
-    .container {
+    .container-lista {
       padding: 20px;
       max-width: 1400px;
       margin: 0 auto;
@@ -165,75 +200,80 @@ import { Reserva, StatusReserva } from '../../models/reserva.model';
       margin-bottom: 30px;
     }
 
-    h1 {
-      color: #333;
+    .header h1 {
       margin: 0;
+      color: #2c3e50;
     }
 
-    .btn-new {
-      background: #28a745;
+    .btn-novo {
+      padding: 12px 24px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
       border: none;
-      padding: 12px 24px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: 500;
-    }
-
-    .btn-new:hover {
-      background: #218838;
-    }
-
-    .filters {
-      background: white;
-      padding: 20px;
       border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      font-size: 1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-novo:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .filtros {
+      display: flex;
+      gap: 10px;
       margin-bottom: 20px;
     }
 
-    .filter-buttons {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 15px;
-      flex-wrap: wrap;
-    }
-
-    .filter-btn {
-      padding: 8px 16px;
+    .filtros button {
+      padding: 10px 20px;
       border: 2px solid #e0e0e0;
       background: white;
-      border-radius: 5px;
+      border-radius: 6px;
       cursor: pointer;
-      font-size: 14px;
-      transition: all 0.2s;
+      transition: all 0.3s ease;
+      font-weight: 600;
     }
 
-    .filter-btn:hover {
-      border-color: #667eea;
+    .filtros button:hover {
+      border-color: #4CAF50;
       background: #f0f4ff;
     }
 
-    .filter-btn.active {
-      border-color: #667eea;
-      background: #667eea;
+    .filtros button.active {
+      background: #4CAF50;
       color: white;
+      border-color: #4CAF50;
     }
 
-    .search-box input {
-      width: 100%;
-      padding: 10px 15px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      font-size: 14px;
+    .loading {
+      text-align: center;
+      padding: 60px 20px;
     }
 
-    .table-container {
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #4CAF50;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .tabela-container {
       background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      overflow-x: auto;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      overflow: hidden;
     }
 
     table {
@@ -241,112 +281,102 @@ import { Reserva, StatusReserva } from '../../models/reserva.model';
       border-collapse: collapse;
     }
 
-    thead {
-      background: #f8f9fa;
-    }
-
     th {
+      background: #2c3e50;
+      color: white;
       padding: 15px;
       text-align: left;
       font-weight: 600;
-      color: #555;
-      border-bottom: 2px solid #dee2e6;
-      white-space: nowrap;
     }
 
     td {
-      padding: 15px;
-      border-bottom: 1px solid #f0f0f0;
+      padding: 12px 15px;
+      border-bottom: 1px solid #e0e0e0;
     }
 
-    tbody tr:hover {
-      background: #f8f9fa;
+    tr:hover {
+      background: #f5f5f5;
     }
 
-    .badge-apt {
-      background: #667eea;
-      color: white;
-      padding: 4px 10px;
+    .sem-dados {
+      text-align: center;
+      color: #7f8c8d;
+      font-style: italic;
+      padding: 40px;
+    }
+
+    .numero-apt {
+      background: #e3f2fd;
+      color: #1976d2;
+      padding: 4px 12px;
       border-radius: 12px;
-      font-size: 13px;
       font-weight: 600;
-    }
-
-    .hospedes {
-      font-weight: 600;
-      color: #667eea;
-    }
-
-    .valor {
-      font-weight: 600;
-      color: #28a745;
-      font-size: 15px;
     }
 
     .badge-status {
-      padding: 4px 12px;
+      padding: 6px 12px;
       border-radius: 12px;
-      font-size: 12px;
+      font-size: 0.85em;
       font-weight: 600;
       text-transform: uppercase;
     }
 
     .status-ativa {
-      background: #d4edda;
-      color: #155724;
-    }
-
-    .status-cancelada {
-      background: #f8d7da;
-      color: #721c24;
+      background: #c8e6c9;
+      color: #2e7d32;
     }
 
     .status-finalizada {
-      background: #d1ecf1;
-      color: #0c5460;
+      background: #bbdefb;
+      color: #1565c0;
     }
 
-    .actions {
+    .status-cancelada {
+      background: #ffcdd2;
+      color: #c62828;
+    }
+
+    .acoes {
       display: flex;
       gap: 5px;
     }
 
-    .btn-view, .btn-finish, .btn-cancel {
-      background: none;
+    .acoes button {
+      padding: 6px 12px;
       border: none;
+      border-radius: 4px;
       cursor: pointer;
-      font-size: 16px;
-      padding: 5px 8px;
-      border-radius: 3px;
-      transition: all 0.2s;
+      font-size: 1em;
+      transition: all 0.3s ease;
     }
 
-    .btn-view:hover {
-      background: #e3f2fd;
+    .btn-visualizar {
+      background: #2196F3;
+      color: white;
     }
 
-    .btn-finish:hover {
-      background: #d4edda;
+    .btn-finalizar {
+      background: #4CAF50;
+      color: white;
     }
 
-    .btn-cancel:hover {
-      background: #f8d7da;
+    .btn-cancelar {
+      background: #f44336;
+      color: white;
     }
 
-    .empty {
-      text-align: center;
-      color: #999;
-      padding: 40px !important;
-      font-style: italic;
+    .acoes button:hover {
+      opacity: 0.8;
+      transform: scale(1.05);
     }
 
-    .modal {
+    .modal-overlay {
       position: fixed;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.7);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -356,220 +386,244 @@ import { Reserva, StatusReserva } from '../../models/reserva.model';
     .modal-content {
       background: white;
       padding: 30px;
-      border-radius: 8px;
-      max-width: 500px;
-      width: 90%;
+      border-radius: 12px;
+      min-width: 500px;
+      max-width: 90%;
+      animation: slideDown 0.3s ease;
     }
 
-    .modal-content h3 {
-      margin: 0 0 15px 0;
+    @keyframes slideDown {
+      from {
+        transform: translateY(-50px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
     }
 
-    .info {
+    .modal-content h2 {
+      margin: 0 0 20px 0;
+      color: #2c3e50;
+    }
+
+    .modal-info {
       background: #f5f5f5;
       padding: 15px;
-      border-radius: 5px;
-      margin: 15px 0;
-      font-size: 14px;
+      border-radius: 8px;
+      margin-bottom: 20px;
     }
 
-    .modal-input {
+    .modal-info p {
+      margin: 8px 0;
+    }
+
+    .aviso {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+      color: #856404;
+      font-weight: 600;
+    }
+
+    .campo {
+      margin-bottom: 20px;
+    }
+
+    .campo label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #2c3e50;
+    }
+
+    .campo textarea {
       width: 100%;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 1em;
       font-family: inherit;
-      font-size: 14px;
-      margin: 10px 0;
+      resize: vertical;
       box-sizing: border-box;
     }
 
-    .modal-actions {
+    .campo textarea:focus {
+      outline: none;
+      border-color: #4CAF50;
+    }
+
+    .modal-footer {
       display: flex;
       gap: 10px;
       justify-content: flex-end;
       margin-top: 20px;
     }
 
-    .btn-modal-cancel, .btn-modal-confirm {
-      padding: 10px 20px;
+    .btn-cancelar-modal,
+    .btn-confirmar {
+      padding: 12px 24px;
       border: none;
-      border-radius: 5px;
+      border-radius: 6px;
+      font-size: 1em;
+      font-weight: 600;
       cursor: pointer;
-      font-size: 14px;
+      transition: all 0.3s ease;
     }
 
-    .btn-modal-cancel {
-      background: #6c757d;
+    .btn-cancelar-modal {
+      background: #95a5a6;
       color: white;
     }
 
-    .btn-modal-cancel:hover {
-      background: #5a6268;
+    .btn-cancelar-modal:hover {
+      background: #7f8c8d;
     }
 
-    .btn-modal-confirm {
-      background: #28a745;
+    .btn-confirmar {
+      background: #4CAF50;
       color: white;
     }
 
-    .btn-modal-confirm:hover:not(:disabled) {
-      background: #218838;
-    }
-
-    .btn-modal-confirm:disabled {
-      background: #ccc;
-      cursor: not-allowed;
+    .btn-confirmar:hover {
+      background: #45a049;
     }
   `]
 })
 export class ReservaListaApp implements OnInit {
-  private reservaService = inject(ReservaService);
   private router = inject(Router);
+  private http = inject(HttpClient);
+  private reservaService = inject(ReservaService);
 
-  reservas: Reserva[] = [];
-  reservasFiltradas: Reserva[] = [];
-  filtroAtual = 'todas';
-  termoBusca = '';
-  
-  showFinalizarModal = false;
-  showCancelarModal = false;
-  reservaParaFinalizar: Reserva | null = null;
-  reservaParaCancelar: Reserva | null = null;
+  reservas: ReservaLista[] = [];
+  reservasFiltradas: ReservaLista[] = [];
+  loading = false;
+  filtroStatus = 'ATIVA';
+
+  modalFinalizar = false;
+  modalCancelar = false;
+  reservaParaFinalizar: ReservaLista | null = null;
+  reservaParaCancelar: ReservaLista | null = null;
   motivoCancelamento = '';
 
   ngOnInit(): void {
-    console.log('🔵 Inicializando ReservaLista');
     this.carregarReservas();
   }
 
-  carregarReservas(): void {
-    console.log('📋 Carregando reservas...');
-    this.reservaService.getAll().subscribe({
-      next: (data) => {
-        this.reservas = data;
-        this.reservasFiltradas = data;
-        console.log('✅ Reservas carregadas:', data.length);
-      },
-      error: (err) => {
-        console.error('❌ Erro ao carregar reservas:', err);
-      }
-    });
-  }
+ carregarReservas(): void {
+  this.loading = true;
+  
+  this.reservaService.listarTodas().subscribe({
+    next: (data: any[]) => {
+      this.reservas = data;
+      
+      // ✅ APLICAR FILTRO INICIAL DE ATIVAS
+      this.filtrarPorStatus(this.filtroStatus);
+      
+      this.loading = false;
+      console.log('✅ Reservas carregadas:', data);
+    },
+    error: (err: any) => {
+      console.error('❌ Erro ao carregar reservas:', err);
+      this.loading = false;
+    }
+  });
+}
 
-  filtrar(tipo: string): void {
-    this.filtroAtual = tipo;
+  filtrarPorStatus(status: string): void {
+    this.filtroStatus = status;
     
-    switch (tipo) {
-      case 'todas':
-        this.carregarReservas();
-        break;
-      case 'ativas':
-        this.reservaService.getAtivas().subscribe({
-          next: (data) => {
-            this.reservas = data;
-            this.reservasFiltradas = data;
-          },
-          error: (err) => console.error('❌ Erro:', err)
-        });
-        break;
-      case 'checkin-hoje':
-        const hoje = new Date().toISOString();
-        this.reservaService.getCheckinsDoDia(hoje).subscribe({
-          next: (data) => {
-            this.reservas = data;
-            this.reservasFiltradas = data;
-          },
-          error: (err) => console.error('❌ Erro:', err)
-        });
-        break;
-      case 'checkout-hoje':
-        const hojeCheckout = new Date().toISOString();
-        this.reservaService.getCheckoutsDoDia(hojeCheckout).subscribe({
-          next: (data) => {
-            this.reservas = data;
-            this.reservasFiltradas = data;
-          },
-          error: (err) => console.error('❌ Erro:', err)
-        });
-        break;
+    if (status === '') {
+      this.reservasFiltradas = this.reservas;
+    } else {
+      this.reservasFiltradas = this.reservas.filter(r => r.status === status);
     }
   }
 
-  buscar(): void {
-    const termo = this.termoBusca.toLowerCase();
-    this.reservasFiltradas = this.reservas.filter(r =>
-      r.cliente?.nome?.toLowerCase().includes(termo) ||
-      r.apartamento?.numeroApartamento?.toLowerCase().includes(termo) ||
-      r.id?.toString().includes(termo)
-    );
-  }
-
-  formatarData(data: string): string {
-    if (!data) return 'N/A';
-    const d = new Date(data);
-    return d.toLocaleDateString('pt-BR');
-  }
-
-  nova(): void {
+  novaReserva(): void {
     this.router.navigate(['/reservas/novo']);
   }
 
-  visualizar(id: number): void {
+  verDetalhes(id: number): void {
+    console.log('🔵 Navegando para detalhes da reserva:', id);
     this.router.navigate(['/reservas/detalhes', id]);
   }
 
-  confirmarFinalizacao(reserva: Reserva): void {
+  confirmarFinalizacao(reserva: ReservaLista): void {
     this.reservaParaFinalizar = reserva;
-    this.showFinalizarModal = true;
+    this.modalFinalizar = true;
   }
 
-  cancelarFinalizacao(): void {
-    this.showFinalizarModal = false;
+  fecharModalFinalizar(): void {
+    this.modalFinalizar = false;
     this.reservaParaFinalizar = null;
   }
 
-  finalizar(): void {
+  temSaldoDevedor(): boolean {
+    return false; // Simplificado
+  }
+
+  finalizarReserva(): void {
     if (!this.reservaParaFinalizar) return;
 
-    this.reservaService.finalizar(this.reservaParaFinalizar.id!).subscribe({
+    this.http.patch(`http://localhost:8080/api/reservas/${this.reservaParaFinalizar.id}/finalizar`, {}).subscribe({
       next: () => {
-        console.log('✅ Reserva finalizada');
+        alert('✅ Reserva finalizada com sucesso!');
+        this.fecharModalFinalizar();
         this.carregarReservas();
-        this.cancelarFinalizacao();
       },
-      error: (err) => {
-        console.error('❌ Erro:', err);
-        alert('Erro ao finalizar: ' + (err.error?.message || err.message));
+      error: (err: any) => {
+        alert('❌ Erro: ' + (err.error?.message || err.message));
       }
     });
   }
 
-  confirmarCancelamento(reserva: Reserva): void {
+  confirmarCancelamento(reserva: ReservaLista): void {
     this.reservaParaCancelar = reserva;
     this.motivoCancelamento = '';
-    this.showCancelarModal = true;
+    this.modalCancelar = true;
   }
 
-  cancelarCancelamento(): void {
-    this.showCancelarModal = false;
+  fecharModalCancelar(): void {
+    this.modalCancelar = false;
     this.reservaParaCancelar = null;
     this.motivoCancelamento = '';
   }
 
-  cancelar(): void {
-    if (!this.reservaParaCancelar || !this.motivoCancelamento) return;
+  cancelarReserva(): void {
+    if (!this.reservaParaCancelar) return;
 
-    this.reservaService.cancelar(this.reservaParaCancelar.id!, this.motivoCancelamento).subscribe({
+    if (!this.motivoCancelamento.trim()) {
+      alert('⚠️ Informe o motivo do cancelamento');
+      return;
+    }
+
+    this.http.patch(`http://localhost:8080/api/reservas/${this.reservaParaCancelar.id}/cancelar`, 
+      null,
+      { params: { motivo: this.motivoCancelamento } }
+    ).subscribe({
       next: () => {
-        console.log('✅ Reserva cancelada');
+        alert('✅ Reserva cancelada com sucesso!');
+        this.fecharModalCancelar();
         this.carregarReservas();
-        this.cancelarCancelamento();
       },
-      error: (err) => {
-        console.error('❌ Erro:', err);
-        alert('Erro ao cancelar: ' + (err.error?.message || err.message));
+      error: (err: any) => {
+        alert('❌ Erro: ' + (err.error?.message || err.message));
       }
     });
+  }
+
+  formatarData(data: any): string {
+    if (!data) return '-';
+    const d = new Date(data);
+    return d.toLocaleDateString('pt-BR');
+  }
+
+  formatarMoeda(valor: any): string {
+    if (valor === null || valor === undefined) return '0,00';
+    return Number(valor).toFixed(2).replace('.', ',');
   }
 }

@@ -13,11 +13,18 @@ import { RouterModule } from '@angular/router';
   imports: [CommonModule, FormsModule, RouterModule],
   
   template: `
-    <div class="container">
-      <div class="header">
-        <h1>Apartamentos</h1>
-        <button class="btn-primary" (click)="novo()">+ Novo Apartamento</button>
-      </div>     
+   
+   <div class="header">
+  <h1>🏨 Apartamentos</h1>
+  <div class="header-actions">
+    <button class="btn-limpeza" (click)="abrirLimpeza()">
+      🧹 Gestão de Limpeza
+    </button>
+    <button class="btn-novo" (click)="novoApartamento()">
+      ➕ Novo Apartamento
+    </button>
+  </div>
+  </div>
 
       <div class="acoes-topo">
          <button class="btn-gestao" routerLink="/apartamentos/gestao">
@@ -76,7 +83,7 @@ import { RouterModule } from '@angular/router';
           </tbody>
         </table>
       </div>
-    </div>
+    
   `,
   styles: [`
     .container {
@@ -286,6 +293,16 @@ export class ApartamentoListaApp implements OnInit {
   alterarStatus(apartamento: Apartamento): void {
     // Implementar modal ou página para alterar status
     console.log('Alterar status:', apartamento);
+  } 
+
+ // ✅ ADICIONAR ESTE MÉTODO
+  novoApartamento(): void {
+    this.router.navigate(['/apartamentos/novo']);
+  }
+
+  // ✅ ADICIONAR ESTE MÉTODO TAMBÉM
+  abrirLimpeza(): void {
+    this.router.navigate(['/apartamentos/limpeza']);
   }
  
 

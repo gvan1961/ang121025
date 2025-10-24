@@ -92,4 +92,34 @@ listarNotasVenda(reservaId: number): Observable<any[]> {
   return this.http.get<any[]>(`${this.apiUrl}/${reservaId}/notas-venda`);
 }
 
+transferirApartamento(dto: any): Observable<any> {
+  return this.http.post(`${this.apiUrl}/transferir-apartamento`, dto);
 }
+
+   buscarPorId(id: number): Observable<Reserva> {
+    return this.http.get<Reserva>(`${this.apiUrl}/${id}`);
+  }
+
+//  listarTodas(): Observable<Reserva[]> {
+//    return this.http.get<Reserva[]>(`${this.apiUrl}/dto`);
+//  }
+    
+
+   listarTodas(): Observable<ReservaResponse[]> {
+    return this.http.get<ReservaResponse[]>(this.apiUrl);
+  }
+
+  
+  criar(reserva: any): Observable<Reserva> {
+    return this.http.post<Reserva>(this.apiUrl, reserva);
+  }
+
+  atualizar(id: number, reserva: any): Observable<Reserva> {
+    return this.http.put<Reserva>(`${this.apiUrl}/${id}`, reserva);
+  }
+
+  deletar(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+}
+

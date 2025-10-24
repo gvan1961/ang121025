@@ -185,3 +185,50 @@ body {
   transform: none;
   box-shadow: none;
 }
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-limpeza {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-limpeza:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.4);
+}
+
+/* Estilos de impressão globais */
+@media print {
+  /* Esconder sidebar */
+  app-sidebar,
+  .sidebar {
+    display: none !important;
+  }
+
+  /* Remover margens do conteúdo principal */
+  .main-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Fundo branco */
+  body, .layout {
+    background: white !important;
+  }
+
+  /* Remover sombras e bordas desnecessárias */
+  * {
+    box-shadow: none !important;
+  }
+}

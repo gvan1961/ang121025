@@ -1,99 +1,82 @@
-
-export enum StatusReserva {
-  ATIVA = 'ATIVA',
-  CANCELADA = 'CANCELADA',
-  FINALIZADA = 'FINALIZADA'
-}
-
-export enum FormaPagamento {
-  DINHEIRO = 'DINHEIRO',
-  PIX = 'PIX',
-  CARTAO_DEBITO = 'CARTAO_DEBITO',
-  CARTAO_CREDITO = 'CARTAO_CREDITO',
-  TRANSFERENCIA_BANCARIA = 'TRANSFERENCIA_BANCARIA',
-  FATURADO = 'FATURADO'
-}
-
-export interface ExtratoReserva {
-  id: number;
-  reservaId: number;
-  dataHoraLancamento: string;
-  statusLancamento: 'PRODUTO' | 'DIARIA' | 'PAGAMENTO' | 'ESTORNO';
-  quantidade?: number;
-  valorUnitario?: number;
-  totalLancamento: number;
-  descricao: string;
-  notaVendaId?: number;
-}
-
-export interface HistoricoHospede {
-  id: number;
-  reservaId: number;
-  dataHora: string;
-  quantidadeAnterior: number;
-  quantidadeNova: number;
-  motivo: string;
-}
-
 export interface Reserva {
-  id?: number;
-  apartamentoId: number;
-  apartamento?: any;
-  clienteId: number;
-  cliente?: any;
+  id: number;
+  cliente: {
+    id: number;
+    nome: string;
+    cpf: string;
+    telefone?: string;
+  };
+  apartamento: {
+    id: number;
+    numeroApartamento: string;
+    capacidade: number;
+    tipoApartamentoNome?: string;
+  };
   quantidadeHospede: number;
-  diariaId?: number;
-  diaria?: any;
   dataCheckin: string;
   dataCheckout: string;
-  quantidadeDiaria?: number;
-  totalDiaria?: number;
+  quantidadeDiaria: number;
+  valorDiaria: number;
+  totalDiaria: number;
+  totalHospedagem: number;
+  totalRecebido: number;
+  totalApagar: number;
   totalProduto?: number;
-  totalHospedagem?: number;
-  totalRecebido?: number;
-  desconto?: number;
-  totalApagar?: number;
-  status?: StatusReserva;
-  extratos?: ExtratoReserva[];
-  historicos?: HistoricoHospede[];
-  notasVenda?: any[];
+  status: string;
+  extratos?: any[];
+  historicos?: any[];
 }
 
 export interface ReservaRequest {
-  apartamentoId: number;
   clienteId: number;
+  apartamentoId: number;
   quantidadeHospede: number;
   dataCheckin: string;
   dataCheckout: string;
+  observacoes?: string;
 }
 
 export interface ReservaResponse {
   id: number;
-  apartamentoId: number;
-  apartamento: any;
-  clienteId: number;
-  cliente: any;
+  clienteNome: string;
+  apartamentoNumero: string;
   quantidadeHospede: number;
-  diariaId: number;
-  diaria: any;
   dataCheckin: string;
   dataCheckout: string;
   quantidadeDiaria: number;
   totalDiaria: number;
-  totalProduto: number;
   totalHospedagem: number;
   totalRecebido: number;
-  desconto: number;
   totalApagar: number;
-  status: StatusReserva;
-  extratos?: ExtratoReserva[];
-  historicos?: HistoricoHospede[];
-  notasVenda?: any[];
+  status: string;
 }
 
-export interface PagamentoRequest {
-  reservaId: number;
-  valor: number;
-  formaPagamento: FormaPagamento;
-  observacao?: string;
+export interface Cliente {
+  id: number;
+  nome: string;
+  cpf: string;
+  celular?: string;
+  telefone?: string;
+  endereco?: string;
+  cidade?: string;
+  estado?: string;
+  cep?: string;
+}
+
+export interface Apartamento {
+  id: number;
+  numeroApartamento: string;
+  capacidade: number;
+  camasDoApartamento?: string;
+  tv?: string;
+  status: string;
+  tipoApartamentoId?: number;
+  tipoApartamentoNome?: string;
+  tipoApartamentoDescricao?: string;
+}
+
+export enum StatusReserva {
+  ATIVA = 'ATIVA',
+  FINALIZADA = 'FINALIZADA',
+  CANCELADA = 'CANCELADA'
 }

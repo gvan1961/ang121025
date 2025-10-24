@@ -94,4 +94,29 @@ export class ApartamentoService {
       { params: { status } }
     );
   }
+
+  listarDisponiveisParaTransferencia(): Observable<Apartamento[]> {
+  return this.http.get<Apartamento[]>(`${this.apiUrl}/disponiveis`);
+}
+
+  listarTodos(): Observable<Apartamento[]> {
+    return this.http.get<Apartamento[]>(this.apiUrl);
+  }
+
+  buscarPorId(id: number): Observable<Apartamento> {
+    return this.http.get<Apartamento>(`${this.apiUrl}/${id}`);
+  }
+
+  criar(apartamento: Apartamento): Observable<Apartamento> {
+    return this.http.post<Apartamento>(this.apiUrl, apartamento);
+  }
+
+  atualizar(id: number, apartamento: Apartamento): Observable<Apartamento> {
+    return this.http.put<Apartamento>(`${this.apiUrl}/${id}`, apartamento);
+  }
+
+  deletar(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
 }

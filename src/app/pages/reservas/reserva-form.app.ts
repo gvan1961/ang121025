@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';  // ✅ ADICIONAR
 import { ReservaService } from '../../services/reserva.service';
 import { ClienteService } from '../../services/cliente.service';
 import { ApartamentoService } from '../../services/apartamento.service';
@@ -10,11 +11,7 @@ import { DiariaService } from '../../services/diaria.service';
 import { ReservaRequest } from '../../models/reserva.model';
 import { Cliente } from '../../models/cliente.model';
 import { Apartamento } from '../../models/apartamento.model';
-
 import { Diaria } from '../../models/diaria.model';
-
-
-
 
 @Component({
   selector: 'app-reserva-form',
@@ -29,20 +26,52 @@ import { Diaria } from '../../models/diaria.model';
 
       <div class="form-card">
         <form (ngSubmit)="salvar()">
-          <div class="form-row">
-            <div class="form-group">
-              <label>Cliente *</label>
-              <select [(ngModel)]="reserva.clienteId" 
-                      name="clienteId" required
-                      (change)="onClienteChange()">
-                <option [ngValue]="0">Selecione o cliente</option>
-                <option *ngFor="let cliente of clientes" [ngValue]="cliente.id">
-                  {{ cliente.nome }} - {{ cliente.cpf }}
-                </option>
-              </select>
-              <small class="field-help">Hóspede principal da reserva</small>
+          <!-- ✅ BUSCA DE CLIENTE -->
+          <div class="form-group campo-busca">
+            <label>Cliente *</label>
+            
+            <div class="busca-wrapper">
+              <input 
+                type="text" 
+                [(ngModel)]="buscaCliente"
+                name="buscaCliente"
+                (input)="filtrarClientes()"
+                (focus)="filtrarClientes()"
+                placeholder="Digite o nome ou CPF do cliente..."
+                class="input-busca"
+                autocomplete="off">
+              
+              <button 
+                type="button" 
+                class="btn-limpar-busca" 
+                *ngIf="buscaCliente"
+                (click)="limparBuscaCliente()">
+                ✕
+              </button>
             </div>
 
+            <!-- RESULTADOS DA BUSCA -->
+            <div class="resultados-busca" *ngIf="mostrarResultados && clientesFiltrados.length > 0">
+              <div 
+                class="resultado-item" 
+                *ngFor="let cliente of clientesFiltrados"
+                (click)="selecionarCliente(cliente)">
+                <div class="resultado-nome">{{ cliente.nome }}</div>
+                <div class="resultado-cpf">CPF: {{ formatarCPF(cliente.cpf) }}</div>
+                <div class="resultado-info" *ngIf="cliente.telefone">
+                  📞 {{ cliente.telefone }}
+                </div>
+              </div>
+            </div>
+            
+            <div class="sem-resultado" *ngIf="mostrarResultados && clientesFiltrados.length === 0 && buscaCliente.length >= 2">
+              ❌ Nenhum cliente encontrado
+            </div>
+
+            <small class="field-help">Digite pelo menos 2 caracteres para buscar</small>
+          </div>
+
+          <div class="form-row">
             <div class="form-group">
               <label>Apartamento *</label>
               <select [(ngModel)]="reserva.apartamentoId" 
@@ -55,6 +84,17 @@ import { Diaria } from '../../models/diaria.model';
               </select>
               <small class="field-help" *ngIf="apartamentoSelecionado">
                 Capacidade máxima: {{ apartamentoSelecionado.capacidade }} pessoa(s)
+              </small>
+            </div>
+
+            <div class="form-group">
+              <label>Quantidade de Hóspedes *</label>
+              <input type="number" [(ngModel)]="reserva.quantidadeHospede" 
+                     name="quantidadeHospede" required min="1" 
+                     [max]="apartamentoSelecionado?.capacidade || 10"
+                     placeholder="Quantidade de pessoas" />
+              <small class="field-help">
+                Número de pessoas que ocuparão o apartamento
               </small>
             </div>
           </div>
@@ -81,17 +121,6 @@ import { Diaria } from '../../models/diaria.model';
                 {{ formatarDataHora(reserva.dataCheckout) }} - Total: {{ quantidadeDiarias }} diária(s)
               </small>
             </div>
-          </div>
-
-          <div class="form-group">
-            <label>Quantidade de Hóspedes *</label>
-            <input type="number" [(ngModel)]="reserva.quantidadeHospede" 
-                   name="quantidadeHospede" required min="1" 
-                   [max]="apartamentoSelecionado?.capacidade || 10"
-                   placeholder="Quantidade de pessoas" />
-            <small class="field-help">
-              Número de pessoas que ocuparão o apartamento
-            </small>
           </div>
 
           <div class="info-box" *ngIf="valorEstimado > 0">
@@ -218,6 +247,110 @@ import { Diaria } from '../../models/diaria.model';
       color: #666;
       margin-top: 4px;
       font-style: italic;
+    }
+
+    /* ✅ ESTILOS DA BUSCA */
+    .campo-busca {
+      position: relative;
+    }
+
+    .busca-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-busca {
+      width: 100%;
+      padding: 12px;
+      padding-right: 40px;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    .input-busca:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .btn-limpar-busca {
+      position: absolute;
+      right: 10px;
+      width: 30px;
+      height: 30px;
+      background: #e0e0e0;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.2em;
+      color: #666;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .btn-limpar-busca:hover {
+      background: #d0d0d0;
+      color: #333;
+    }
+
+    .resultados-busca {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 2px solid #667eea;
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+      max-height: 300px;
+      overflow-y: auto;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 1000;
+      margin-top: -2px;
+    }
+
+    .resultado-item {
+      padding: 12px 15px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .resultado-item:last-child {
+      border-bottom: none;
+    }
+
+    .resultado-item:hover {
+      background: #f5f5f5;
+    }
+
+    .resultado-nome {
+      font-weight: 600;
+      color: #2c3e50;
+      margin-bottom: 4px;
+    }
+
+    .resultado-cpf {
+      font-size: 0.9em;
+      color: #7f8c8d;
+      margin-bottom: 2px;
+    }
+
+    .resultado-info {
+      font-size: 0.85em;
+      color: #95a5a6;
+    }
+
+    .sem-resultado {
+      padding: 20px;
+      text-align: center;
+      color: #e74c3c;
+      font-weight: 500;
     }
 
     .info-box {
@@ -359,6 +492,7 @@ export class ReservaFormApp implements OnInit {
   private apartamentoService = inject(ApartamentoService);
   private diariaService = inject(DiariaService);
   private router = inject(Router);
+  private http = inject(HttpClient);  // ✅ ADICIONAR
 
   reserva: ReservaRequest = {
     clienteId: 0,
@@ -373,7 +507,13 @@ export class ReservaFormApp implements OnInit {
   apartamentoSelecionado: Apartamento | null = null;
   diarias: Diaria[] = [];
   diariaAplicada: Diaria | null = null;
-  
+ 
+  // ✅ BUSCA DE CLIENTES
+  todosClientes: any[] = [];
+  clientesFiltrados: any[] = [];
+  buscaCliente = '';
+  mostrarResultados = false;
+
   quantidadeDiarias = 0;
   valorDiaria = 0;
   valorEstimado = 0;
@@ -390,11 +530,11 @@ export class ReservaFormApp implements OnInit {
 
   setDatasPadrao(): void {
     const hoje = new Date();
-    hoje.setHours(14, 0, 0, 0); // Check-in às 14:00
+    hoje.setHours(14, 0, 0, 0);
     
     const amanha = new Date(hoje);
     amanha.setDate(amanha.getDate() + 1);
-    amanha.setHours(12, 0, 0, 0); // Check-out às 12:00
+    amanha.setHours(12, 0, 0, 0);
     
     this.reserva.dataCheckin = this.formatDateTimeLocal(hoje);
     this.reserva.dataCheckout = this.formatDateTimeLocal(amanha);
@@ -413,7 +553,6 @@ export class ReservaFormApp implements OnInit {
     if (!dataHora) return '';
     
     const data = new Date(dataHora);
-    
     const dia = String(data.getDate()).padStart(2, '0');
     const mes = String(data.getMonth() + 1).padStart(2, '0');
     const ano = data.getFullYear();
@@ -423,11 +562,12 @@ export class ReservaFormApp implements OnInit {
     return `${dia}/${mes}/${ano} às ${hora}:${minuto}`;
   }
 
+  // ✅ CARREGAR CLIENTES
   carregarClientes(): void {
-    console.log('📋 Carregando clientes...');
-    this.clienteService.getAll().subscribe({
+    this.http.get<any[]>('http://localhost:8080/api/clientes').subscribe({
       next: (data) => {
-        this.clientes = data;
+        this.todosClientes = data;
+        this.clientesFiltrados = [];
         console.log('✅ Clientes carregados:', data.length);
       },
       error: (err) => {
@@ -447,6 +587,50 @@ export class ReservaFormApp implements OnInit {
         console.error('❌ Erro ao carregar apartamentos:', err);
       }
     });
+  }
+
+  // ✅ MÉTODOS DE BUSCA DE CLIENTE
+  filtrarClientes(): void {
+    const busca = this.buscaCliente.toLowerCase().trim();
+    
+    if (busca.length < 2) {
+      this.clientesFiltrados = [];
+      this.mostrarResultados = false;
+      return;
+    }
+
+    this.clientesFiltrados = this.todosClientes.filter(cliente => {
+      const nome = (cliente.nome || '').toLowerCase();
+      const cpf = (cliente.cpf || '').replace(/\D/g, '');
+      const buscaSemFormatacao = busca.replace(/\D/g, '');
+      
+      return nome.includes(busca) || cpf.includes(buscaSemFormatacao);
+    });
+
+    this.mostrarResultados = true;
+    console.log(`🔍 Busca: "${busca}" - ${this.clientesFiltrados.length} resultados`);
+  }
+
+  selecionarCliente(cliente: any): void {
+    this.reserva.clienteId = cliente.id;
+    this.buscaCliente = `${cliente.nome} - ${this.formatarCPF(cliente.cpf)}`;
+    this.clientesFiltrados = [];
+    this.mostrarResultados = false;
+    
+    console.log('✅ Cliente selecionado:', cliente.nome, '- ID:', cliente.id);
+  }
+
+  formatarCPF(cpf: string): string {
+    if (!cpf) return '';
+    const apenasNumeros = cpf.replace(/\D/g, '');
+    return apenasNumeros.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  }
+
+  limparBuscaCliente(): void {
+    this.buscaCliente = '';
+    this.reserva.clienteId = 0;
+    this.clientesFiltrados = [];
+    this.mostrarResultados = false;
   }
 
   onClienteChange(): void {
@@ -490,9 +674,7 @@ export class ReservaFormApp implements OnInit {
     
     this.quantidadeDiarias = diffDays > 0 ? diffDays : 0;
     
-    // ✅ BUSCAR A DIÁRIA ADEQUADA
     if (this.diarias.length > 0 && this.quantidadeDiarias > 0) {
-      // Encontrar a diária com a maior quantidade que ainda é <= quantidadeDiarias
       this.diariaAplicada = this.diarias
         .filter(d => d.quantidade <= this.quantidadeDiarias)
         .sort((a, b) => b.quantidade - a.quantidade)[0] || this.diarias[0];

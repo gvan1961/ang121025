@@ -3,6 +3,7 @@ import { authGuard } from './guards/auth.guard';
 
 // IMPORTS
 import { LoginApp } from './pages/login/login.app';
+import { LayoutComponent } from './components/layout.component';
 import { DashboardApp } from './pages/dashboard/dashboard.app';
 import { ClienteListaApp } from './pages/clientes/cliente-lista.app';
 import { ClienteFormApp } from './pages/clientes/cliente-form.app';
@@ -21,157 +22,71 @@ import { ProdutoFormApp } from './pages/produtos/produto-form.app';
 import { ReservaListaApp } from './pages/reservas/reserva-lista.app';
 import { ReservaFormApp } from './pages/reservas/reserva-form.app';
 import { ReservaDetalhesApp } from './pages/reservas/reserva-detalhes.app';
-
-// ✅ ADICIONAR ESTE IMPORT
 import { ApartamentosGestaoApp } from './pages/apartamentos/apartamentos-gestao.app';
+import { ApartamentosLimpezaApp } from './pages/apartamentos/apartamentos-limpeza.app';
+import { ContasReceberListaApp } from './pages/contas-receber/contas-receber-lista.app';
+
 
 export const routes: Routes = [
-  // AUTH
+  // LOGIN (sem layout)
   { path: 'login', component: LoginApp },
-  { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
-
-  // DASHBOARD
-  { 
-    path: 'dashboard', 
-    component: DashboardApp,
-    canActivate: [authGuard]
-  },
-
-  // CLIENTES
-  { 
-    path: 'clientes', 
-    component: ClienteListaApp,
-    canActivate: [authGuard]
-  },
-  { 
-    path: 'clientes/novo', 
-    component: ClienteFormApp,
-    canActivate: [authGuard]
-  },
-  { 
-    path: 'clientes/editar/:id', 
-    component: ClienteFormApp,
-    canActivate: [authGuard]
-  },
-
-  // PRODUTOS
-  { 
-    path: 'produtos', 
-    component: ProdutoListaApp,
-    canActivate: [authGuard]
-  },
-  { 
-    path: 'produtos/novo', 
-    component: ProdutoFormApp,
-    canActivate: [authGuard]
-  },
-
-  // APARTAMENTOS
-  { 
-    path: 'apartamentos', 
-    component: ApartamentoListaApp,
-    canActivate: [authGuard]
-  },
-  { 
-    path: 'apartamentos/novo', 
-    component: ApartamentoFormApp,
-    canActivate: [authGuard]
-  },
-  { 
-    path: 'apartamentos/editar/:id', 
-    component: ApartamentoFormApp,
-    canActivate: [authGuard]
-  },
-  // ✅ GESTÃO DE APARTAMENTOS - CORRIGIDO
-  { 
-    path: 'apartamentos/gestao', 
-    component: ApartamentosGestaoApp,
-    canActivate: [authGuard]
-  },
-
-  // TIPOS DE APARTAMENTO
-  { 
-    path: 'tipos-apartamento', 
-    component: TipoApartamentoListaApp,
-    canActivate: [authGuard]
-  },
-  { 
-    path: 'tipos-apartamento/novo', 
-    component: TipoApartamentoFormApp,
-    canActivate: [authGuard]
-  },
-  { 
-    path: 'tipos-apartamento/editar/:id', 
-    component: TipoApartamentoFormApp,
-    canActivate: [authGuard]
-  },
-
-  // DIÁRIAS
-  { 
-    path: 'diarias', 
-    component: DiariaListaApp,
-    canActivate: [authGuard]
-  },
-  { 
-    path: 'diarias/novo', 
-    component: DiariaFormApp,
-    canActivate: [authGuard]
-  },
-  { 
-    path: 'diarias/editar/:id', 
-    component: DiariaFormApp,
-    canActivate: [authGuard]
-  },
-
-  // RESERVAS
+  
+  // TODAS AS OUTRAS ROTAS COM LAYOUT + SIDEBAR
   {
-    path: 'reservas',
-    component: ReservaListaApp,
-    canActivate: [authGuard]
-  },
-  {
-    path: 'reservas/novo',
-    component: ReservaFormApp,
-    canActivate: [authGuard]
-  },
-  {
-    path: 'reservas/detalhes/:id',
-    component: ReservaDetalhesApp,
-    canActivate: [authGuard]
-  },
+    path: '',
+    component: LayoutComponent,
+    canActivate: [authGuard],
+    children: [
+      { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
+      
+      // DASHBOARD
+      { path: 'dashboard', component: DashboardApp },
 
-  // CATEGORIAS
-  { 
-    path: 'categorias', 
-    component: CategoriaListaApp,
-    canActivate: [authGuard]
-  },
-  { 
-    path: 'categorias/nova', 
-    component: CategoriaFormApp,
-    canActivate: [authGuard]
-  },
-  { 
-    path: 'categorias/editar/:id', 
-    component: CategoriaFormApp,
-    canActivate: [authGuard]
-  },
+      // CLIENTES
+      { path: 'clientes', component: ClienteListaApp },
+      { path: 'clientes/novo', component: ClienteFormApp },
+      { path: 'clientes/editar/:id', component: ClienteFormApp },
 
-  // EMPRESAS
-  { 
-    path: 'empresas', 
-    component: EmpresaListaApp,
-    canActivate: [authGuard]
-  },
-  { 
-    path: 'empresas/nova', 
-    component: EmpresaFormApp,
-    canActivate: [authGuard]
-  },
-  { 
-    path: 'empresas/editar/:id', 
-    component: EmpresaFormApp,
-    canActivate: [authGuard]
+      // PRODUTOS
+      { path: 'produtos', component: ProdutoListaApp },
+      { path: 'produtos/novo', component: ProdutoFormApp },
+
+      // APARTAMENTOS
+      { path: 'apartamentos', component: ApartamentoListaApp },
+      { path: 'apartamentos/limpeza', component: ApartamentosLimpezaApp },
+      { path: 'apartamentos/novo', component: ApartamentoFormApp },
+      { path: 'apartamentos/editar/:id', component: ApartamentoFormApp },
+      { path: 'apartamentos/gestao', component: ApartamentosGestaoApp },
+            
+
+      // TIPOS DE APARTAMENTO
+      { path: 'tipos-apartamento', component: TipoApartamentoListaApp },
+      { path: 'tipos-apartamento/novo', component: TipoApartamentoFormApp },
+      { path: 'tipos-apartamento/editar/:id', component: TipoApartamentoFormApp },
+
+      // DIÁRIAS
+      { path: 'diarias', component: DiariaListaApp },
+      { path: 'diarias/novo', component: DiariaFormApp },
+      { path: 'diarias/editar/:id', component: DiariaFormApp },
+
+      // RESERVAS
+      { path: 'reservas', component: ReservaListaApp },
+      { path: 'reservas/novo', component: ReservaFormApp },
+      { path: 'reservas/detalhes/:id', component: ReservaDetalhesApp },
+
+      // CATEGORIAS
+      { path: 'categorias', component: CategoriaListaApp },
+      { path: 'categorias/nova', component: CategoriaFormApp },
+      { path: 'categorias/editar/:id', component: CategoriaFormApp },
+
+      // CONTAS A RECEBER
+      { path: 'contas-receber', component: ContasReceberListaApp },
+      
+      // EMPRESAS
+      { path: 'empresas', component: EmpresaListaApp },
+      { path: 'empresas/nova', component: EmpresaFormApp },
+      { path: 'empresas/editar/:id', component: EmpresaFormApp },
+    ]
   },
 
   // REDIRECT

@@ -11,134 +11,85 @@ import { AuthService } from '../../services/auth.service';
   imports: [CommonModule],
   template: `
     <div class="dashboard">
-      <nav class="navbar">
+      <div class="navbar">
         <div class="nav-brand">
-          <h2>Sistema Divan</h2>
+          <h2>🏨 Sistema Divan</h2>
         </div>
         <div class="nav-user">
-          <span>{{ nomeUsuario }}</span>
-          <button (click)="logout()">Sair</button>
+          <span>Olá, {{ nomeUsuario }}</span>
         </div>
-      </nav>
+      </div>
 
       <div class="content">
-        <aside class="sidebar">
-          <ul class="menu">
-            <li>
-              <a [class.active]="isActive('/dashboard')" (click)="navigate('/dashboard')">
-                📊 Dashboard
-              </a>
-            </li>
-            
-            <!-- ✅ RESERVAS ADICIONADO -->
-            <li>
-              <a [class.active]="isActive('/reservas')" (click)="navigate('/reservas')">
-                🏨 Reservas
-              </a>
-            </li>
+        <div class="welcome">
+          <h1>Bem-vindo ao Sistema Divan</h1>
+          <p>Selecione uma opção abaixo para começar</p>
+          
+          <div class="cards">
+            <!-- RESERVAS -->
+            <div class="card highlight" (click)="navigate('/reservas')">
+              <div class="card-icon">📋</div>
+              <h3>Reservas</h3>
+              <p>Gerenciar reservas de hóspedes</p>
+            </div>
 
-            <li>
-              <a [class.active]="isActive('/apartamentos')" (click)="navigate('/apartamentos')">
-                🏢 Apartamentos
-              </a>
-            </li>
-
-            <li>
-              <a [class.active]="isActive('/tipos-apartamento')" (click)="navigate('/tipos-apartamento')">
-                🏷️ Tipos Apartamento
-              </a>
-            </li>
-            
-            <li>
-              <a [class.active]="isActive('/diarias')" (click)="navigate('/diarias')">
-                💰 Diárias
-              </a>
-            </li>
-            
-            <li>
-              <a [class.active]="isActive('/clientes')" (click)="navigate('/clientes')">
-                👥 Clientes
-              </a>
-            </li>
-            
-            <li>
-              <a [class.active]="isActive('/empresas')" (click)="navigate('/empresas')">
-                🏢 Empresas
-              </a>
-            </li>
-            
-            <li>
-              <a [class.active]="isActive('/produtos')" (click)="navigate('/produtos')">
-                📦 Produtos
-              </a>
-            </li>
-            
-            <li>
-              <a [class.active]="isActive('/categorias')" (click)="navigate('/categorias')">
-                🏷️ Categorias
-              </a>
-            </li>
-          </ul>
-        </aside>
-
-        <main class="main">
-          <div class="welcome">
-            <h1>Bem-vindo ao Sistema Divan</h1>
-            <p>Selecione uma opção no menu lateral para começar</p>
-            
-            <div class="cards">
-              <!-- ✅ CARD RESERVAS ADICIONADO -->
-              <div class="card highlight" (click)="navigate('/reservas')">
-                <div class="card-icon">🏨</div>
-                <h3>Reservas</h3>
-                <p>Gerenciar reservas de hóspedes</p>
+            <!-- ✅ ADICIONAR ESTE CARD -->
+              <div class="card limpeza" (click)="navigate('/apartamentos/limpeza')">
+                <div class="card-icon">🧹</div>
+                  <h3>Limpeza</h3>
+                  <p>Gestão de limpeza de apartamentos</p>
               </div>
 
-              <div class="card" (click)="navigate('/apartamentos')">
-                <div class="card-icon">🏢</div>
-                <h3>Apartamentos</h3>
-                <p>Gerenciar apartamentos do hotel</p>
-              </div>
+            <!-- APARTAMENTOS -->
+            <div class="card" (click)="navigate('/apartamentos')">
+              <div class="card-icon">🏨</div>
+              <h3>Apartamentos</h3>
+              <p>Gerenciar apartamentos do hotel</p>
+            </div>
 
-              <div class="card" (click)="navigate('/tipos-apartamento')">
-                <div class="card-icon">🏷️</div>
-                <h3>Tipos Apartamento</h3>
-                <p>Gerenciar tipos de apartamentos</p>
-              </div>
+            <!-- TIPOS APARTAMENTO -->
+            <div class="card" (click)="navigate('/tipos-apartamento')">
+              <div class="card-icon">🏷️</div>
+              <h3>Tipos Apartamento</h3>
+              <p>Gerenciar tipos de apartamentos</p>
+            </div>
 
-              <!-- ✅ CARD DIÁRIAS ADICIONADO -->
-              <div class="card" (click)="navigate('/diarias')">
-                <div class="card-icon">💰</div>
-                <h3>Diárias</h3>
-                <p>Gerenciar valores de diárias</p>
-              </div>
+            <!-- DIÁRIAS -->
+            <div class="card" (click)="navigate('/diarias')">
+              <div class="card-icon">💰</div>
+              <h3>Diárias</h3>
+              <p>Gerenciar valores de diárias</p>
+            </div>
 
-              <div class="card" (click)="navigate('/clientes')">
-                <div class="card-icon">👥</div>
-                <h3>Clientes</h3>
-                <p>Gerenciar clientes do sistema</p>
-              </div>
+            <!-- CLIENTES -->
+            <div class="card" (click)="navigate('/clientes')">
+              <div class="card-icon">👥</div>
+              <h3>Clientes</h3>
+              <p>Gerenciar clientes do sistema</p>
+            </div>
 
-              <div class="card" (click)="navigate('/empresas')">
-                <div class="card-icon">🏢</div>
-                <h3>Empresas</h3>
-                <p>Gerenciar empresas cadastradas</p>
-              </div>
+            <!-- EMPRESAS -->
+            <div class="card" (click)="navigate('/empresas')">
+              <div class="card-icon">🏢</div>
+              <h3>Empresas</h3>
+              <p>Gerenciar empresas cadastradas</p>
+            </div>
 
-              <div class="card" (click)="navigate('/produtos')">
-                <div class="card-icon">📦</div>
-                <h3>Produtos</h3>
-                <p>Gerenciar produtos e estoque</p>
-              </div>
+            <!-- PRODUTOS -->
+            <div class="card" (click)="navigate('/produtos')">
+              <div class="card-icon">🛒</div>
+              <h3>Produtos</h3>
+              <p>Gerenciar produtos e estoque</p>
+            </div>
 
-              <div class="card" (click)="navigate('/categorias')">
-                <div class="card-icon">🏷️</div>
-                <h3>Categorias</h3>
-                <p>Gerenciar categorias de produtos</p>
-              </div>
+            <!-- CATEGORIAS -->
+            <div class="card" (click)="navigate('/categorias')">
+              <div class="card-icon">🗂️</div>
+              <h3>Categorias</h3>
+              <p>Gerenciar categorias de produtos</p>
             </div>
           </div>
-        </main>
+        </div>
       </div>
     </div>
   `,
@@ -149,18 +100,19 @@ import { AuthService } from '../../services/auth.service';
     }
 
     .navbar {
-      background: #667eea;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
-      padding: 15px 30px;
+      padding: 20px 30px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
     .nav-brand h2 {
       margin: 0;
-      font-size: 24px;
+      font-size: 1.5em;
+      font-weight: 700;
     }
 
     .nav-user {
@@ -169,75 +121,29 @@ import { AuthService } from '../../services/auth.service';
       gap: 15px;
     }
 
-    .nav-user button {
-      background: rgba(255,255,255,0.2);
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .nav-user button:hover {
-      background: rgba(255,255,255,0.3);
+    .nav-user span {
+      font-weight: 500;
     }
 
     .content {
-      display: flex;
-      min-height: calc(100vh - 70px);
-    }
-
-    .sidebar {
-      width: 250px;
-      background: white;
-      box-shadow: 2px 0 4px rgba(0,0,0,0.1);
-    }
-
-    .menu {
-      list-style: none;
-      padding: 20px 0;
-      margin: 0;
-    }
-
-    .menu li {
-      margin: 0;
-    }
-
-    .menu a {
-      display: block;
-      padding: 15px 25px;
-      color: #333;
-      text-decoration: none;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .menu a:hover {
-      background: #f5f5f5;
-    }
-
-    .menu a.active {
-      background: #667eea;
-      color: white;
-    }
-
-    .main {
-      flex: 1;
-      padding: 30px;
+      padding: 40px 30px;
     }
 
     .welcome {
       max-width: 1200px;
+      margin: 0 auto;
     }
 
     .welcome h1 {
-      color: #333;
+      color: #2c3e50;
       margin-bottom: 10px;
+      font-size: 2em;
     }
 
     .welcome p {
-      color: #666;
+      color: #7f8c8d;
       margin-bottom: 40px;
+      font-size: 1.1em;
     }
 
     .cards {
@@ -249,43 +155,88 @@ import { AuthService } from '../../services/auth.service';
     .card {
       background: white;
       padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
       cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
     }
 
     .card:hover {
       transform: translateY(-5px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+      border-color: #667eea;
     }
 
-    /* ✅ Destaque para Reservas */
     .card.highlight {
-      border: 2px solid #667eea;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
+      border-color: #667eea;
+    }
+
+    .card.highlight:hover {
+      transform: translateY(-5px) scale(1.02);
+      box-shadow: 0 12px 24px rgba(102, 126, 234, 0.3);
     }
 
     .card.highlight h3,
-    .card.highlight p {
+    .card.highlight p,
+    .card.highlight .card-icon {
       color: white;
     }
 
     .card-icon {
-      font-size: 48px;
+      font-size: 3em;
       margin-bottom: 15px;
     }
 
     .card h3 {
       margin: 0 0 10px 0;
-      color: #333;
+      color: #2c3e50;
+      font-size: 1.2em;
+      font-weight: 600;
     }
 
     .card p {
       margin: 0;
-      color: #666;
-      font-size: 14px;
+      color: #7f8c8d;
+      font-size: 0.95em;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 768px) {
+      .cards {
+        grid-template-columns: 1fr;
+      }
+
+      .content {
+        padding: 20px 15px;
+      }
+
+      .navbar {
+        padding: 15px 20px;
+      }
+
+      .nav-brand h2 {
+        font-size: 1.2em;
+      }
+
+      .card.limpeza {
+  background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+  color: white;
+}
+
+.card.limpeza h3,
+.card.limpeza p,
+.card.limpeza .card-icon {
+  color: white;
+}
+
+.card.limpeza:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 12px 24px rgba(243, 156, 18, 0.3);
+}
+
     }
   `]
 })
@@ -303,16 +254,4 @@ export class DashboardApp {
   navigate(route: string): void {
     this.router.navigate([route]);
   }
-
-  isActive(route: string): boolean {
-    return this.router.url === route;
-  }
-
-  logout(): void {
-    this.authService.logout();
-  }
-
-  
-
-
 }
